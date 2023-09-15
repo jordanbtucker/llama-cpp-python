@@ -18,6 +18,7 @@ from ctypes import (
     c_size_t,
 )
 import pathlib
+import sysconfig
 from typing import List, Union
 
 
@@ -58,6 +59,12 @@ def _load_shared_library(lib_base_name: str):
         if "CUDA_PATH" in os.environ:
             os.add_dll_directory(os.path.join(os.environ["CUDA_PATH"], "bin"))
             os.add_dll_directory(os.path.join(os.environ["CUDA_PATH"], "lib"))
+        else:
+            # If CUDA_PATH is not set, check for CUDA pip wheels and add their paths
+            nvidia_pip_path = os.path.join(sysconfig.get_path("purelib"), "nvidia")
+            if os.path.exists(nvidia_pip_path):
+                os.add_dll_directory(os.path.join(nvidia_pip_path, "cuda_runtime", "bin"))
+                os.add_dll_directory(os.path.join(nvidia_pip_path, "cublas", "bin"))
         cdll_args["winmode"] = 0
 
     # Try to load the shared library, handling potential errors
